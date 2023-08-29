@@ -13,23 +13,31 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-api.getAccessToken().then(() => {
+api.getAccessToken().then(async () => {
 	app.get("/ping", (req, res) => res.send("pong " + Date.now()));
 
-	app.post("/add-contact", (req, res) => {
-		const custom_fields = req.body.contacts.add[0].custom_fields;
-		let field_id = null;
+	app.post("/add-contact", async (req, res) => {
+        const CONTACT_FIELD_ID = 1265371
+        const CONTACT_ID = req.body.contacts.add[0].id
+        const CONTACT = req.body.contacts.add[0]
+
+		const custom_fields = CONTACT.custom_fields;
+        let birthday = null;
 		custom_fields.map(item => {
 			if(String(item.name) === "Дата рождения") {
-				field_id = item.id;
+                birthday = item.values[0];
 			}
 		});
-		const birthday = utils.getFieldValue(custom_fields, field_id);
-		const age = Math.floor((Date.now() / 31536000000) - (birthday / 31536000));
-		utils.makeField("999", "Возраст", age);
-		console.log(utils.makeField("999", age));
+		const AGE = Math.floor((Date.now() / 31536000000) - (birthday / 31536000));
+
+        const NEW_CONTACT = {
+            id: Number(CONTACT_ID),
+            custom_fields_values: [utils.makeField(CONTACT_FIELD_ID, AGE)]
+        }
+        await api.updateContacts(NEW_CONTACT)
 		res.send("OK");
 	});
+
 
 	app.listen(config.PORT, () => logger.debug("Server started on ", config.PORT));
 });
