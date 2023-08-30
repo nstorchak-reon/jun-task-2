@@ -24,15 +24,15 @@ api.getAccessToken().then(async () => {
 		const CONTACT_ID = req.body.contacts.add[0].id;
 		const CONTACT = req.body.contacts.add[0];
 		const CUSTOM_FIELDS = CONTACT.custom_fields;
-		const BIRTHDAY_UNIX = utils.getFieldValue(CUSTOM_FIELDS, CONTACT_DATE_FIELD_ID).value.split(".");
-		const MONTH = (CURENT_DATE.getMonth() + 1) - (Number(BIRTHDAY_UNIX[1]) + 1);
-		const AGE = (CURENT_DATE.getFullYear() - Number(BIRTHDAY_UNIX[2]) - ((MONTH < 0 || ( MONTH === 0 && CURENT_DATE.getDate() < Number(BIRTHDAY_UNIX[0]))) ? 1 : 0));
+		const [date, month, year] = utils.getFieldValue(CUSTOM_FIELDS, CONTACT_DATE_FIELD_ID).value.split(".");
+		const MONTH = (CURENT_DATE.getMonth() + 1) - (Number(month) + 1);
+		const AGE = (CURENT_DATE.getFullYear() - Number(year) - ((MONTH < 0 || ( MONTH === 0 && CURENT_DATE.getDate() < Number(date))) ? 1 : 0));
 		
         const NEW_CONTACT = {
 			id: Number(CONTACT_ID),
 			custom_fields_values: [utils.makeField(CONTACT_AGE_FIELD_ID, AGE)]
 		};
-        
+
 		await api.updateContacts(NEW_CONTACT);
 		res.send("OK");
 	});
